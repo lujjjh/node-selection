@@ -68,6 +68,16 @@ const std::string GetSelection() {
 
   NSString *selection;
   auto error = AXUIElementCopyAttributeValue(focusedElement, kAXSelectedTextAttribute, (CFTypeRef *)&selection);
+  if (error != kAXErrorSuccess) {
+    // Handle WebKit-like elements.
+    CFTypeRef range;
+    error = AXUIElementCopyAttributeValue(focusedElement, CFSTR("AXSelectedTextMarkerRange"), &range);
+    if (error == kAXErrorSuccess) {
+      error = AXUIElementCopyParameterizedAttributeValue(focusedElement, CFSTR("AXStringForTextMarkerRange"), range,
+                                                         (CFTypeRef *)&selection);
+      CFRelease(range);
+    }
+  }
   CFRelease(focusedElement);
   if (error != kAXErrorSuccess) {
     throw RuntimeException("failed to get selected text");
