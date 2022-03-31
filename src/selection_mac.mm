@@ -1,27 +1,15 @@
 #include <AppKit/AppKit.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <Foundation/Foundation.h>
-#include <nan.h>
-#include <node.h>
 
 #include "./selection.hpp"
 
 namespace selection_impl {
-using Nan::AsyncWorker;
-using Nan::AsyncQueueWorker;
-using Nan::Callback;
 using selection::RuntimeException;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-using v8::Boolean;
-using v8::String;
-using v8::Value;
+
+void Initialize() {}
 
 bool CheckAccessibilityPermissions(bool prompt) {
-  CFRunLoopRunInMode(kCFRunLoopDefaultMode, 5, NO);
   NSDictionary *options = @{(id)kAXTrustedCheckOptionPrompt : @(prompt)};
   return AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
 }

@@ -15,6 +15,7 @@ public:
 } // namespace selection
 
 namespace selection_impl {
+void Initialize();
 bool CheckAccessibilityPermissions(bool prompt);
 const std::string GetSelection();
 } // namespace selection_impl

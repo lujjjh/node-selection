@@ -8,14 +8,13 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms));
     process.exit(1);
   }
 
-  for (let lastSelection; ; ) {
+  for (;;) {
     try {
-      const { text: selection } = await getSelection();
-      if (selection !== lastSelection) {
-        console.log('current selection:', selection);
-        lastSelection = selection;
-      }
-    } catch {}
-    await sleep(500);
+      const { text } = await getSelection();
+      console.log('current selection:', text);
+    } catch (error) {
+      console.error('error', error);
+    }
+    await sleep(1000);
   }
 })();

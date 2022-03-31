@@ -2,15 +2,17 @@
   "configurations": [
     {
       "name": "Mac",
-      "includePath": ["${workspaceFolder}/**", "/usr/local/include/**"],
+      "includePath": [
+        "${workspaceFolder}/**",
+        "/usr/local/include/**",
+        "${env.USERPROFILE}\\AppData\\Local\\node-gyp\\Cache\\17.7.1\\include\\**"
+      ],
       "defines": [],
       "macFrameworkPath": [
         "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
       ],
-      "compilerPath": "/usr/bin/clang",
       "cStandard": "c17",
-      "cppStandard": "c++11",
-      "intelliSenseMode": "macos-clang-x64"
+      "cppStandard": "c++11"
     }
   ],
   "version": 4

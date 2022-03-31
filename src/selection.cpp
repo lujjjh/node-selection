@@ -74,6 +74,7 @@ void GetSelection(const FunctionCallbackInfo<Value> &args) {
 }
 
 void Initialize(Local<Object> exports) {
+  selection_impl::Initialize();
   NODE_SET_METHOD(exports, "checkAccessibilityPermissions", CheckAccessibilityPermissions);
   NODE_SET_METHOD(exports, "getSelection", GetSelection);
 }
