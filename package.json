@@ -1,0 +1,15 @@
+{
+  "name": "node-selection",
+  "version": "0.1.0",
+  "description": "Get current selected text by using system a11y API",
+  "gypfile": true,
+  "main": "index.js",
+  "author": "Jiahao Lu <lujjjh@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "install": "node-gyp configure --module_name=selection build"
+  },
+  "dependencies": {
+    "nan": "^2.15.0"
+  }
+}
