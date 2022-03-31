@@ -4,6 +4,7 @@
   "description": "Get current selected text by using system a11y API",
   "gypfile": true,
   "main": "index.js",
+  "types": "index.d.ts",
   "author": "Jiahao Lu <lujjjh@gmail.com>",
   "license": "MIT",
   "scripts": {

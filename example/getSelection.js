@@ -10,7 +10,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms));
 
   for (let lastSelection; ; ) {
     try {
-      const selection = await getSelection();
+      const { text: selection } = await getSelection();
       if (selection !== lastSelection) {
         console.log('current selection:', selection);
         lastSelection = selection;
