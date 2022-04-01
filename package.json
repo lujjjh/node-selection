@@ -5,12 +5,21 @@
   "gypfile": true,
   "main": "index.js",
   "types": "index.d.ts",
-  "author": "Jiahao Lu <lujjjh@gmail.com>",
+  "author": "Jiahao Lu <lujjjh@gmail.com> (https://github.com/lujjjh)",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lujjjh/node-selection"
+  },
   "scripts": {
-    "install": "node-gyp configure --module_name=selection build"
+    "install": "prebuild-install || node-gyp rebuild",
+    "build": "node misc/fix-abi-registry.js && prebuild --all --force --strip --verbose"
   },
   "dependencies": {
-    "nan": "^2.15.0"
+    "nan": "^2.15.0",
+    "prebuild-install": "^7.0.1"
+  },
+  "devDependencies": {
+    "prebuild": "^11.0.3"
   }
 }

@@ -2,6 +2,7 @@
 #define SELECTION_H
 
 #include <node.h>
+#include <string>
 
 namespace selection {
 class RuntimeException : public std::exception {
