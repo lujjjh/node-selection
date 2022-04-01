@@ -20,7 +20,15 @@
             ],
             "xcode_settings": {
               "MACOSX_DEPLOYMENT_TARGET": "10.9",
-              "GCC_ENABLE_CPP_EXCEPTIONS": "YES"
+              "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
+              "OTHER_CFLAGS": [
+                "-arch x86_64",
+                "-arch arm64"
+              ],
+              "OTHER_LDFLAGS": [
+                "-arch x86_64",
+                "-arch arm64"
+              ]
             },
             "link_settings": {
               "libraries": [

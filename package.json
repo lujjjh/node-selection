@@ -13,7 +13,7 @@
   },
   "scripts": {
     "install": "prebuild-install || node-gyp rebuild",
-    "prebuild": "node misc/fix-abi-registry.js && prebuild --all --force --strip --verbose",
+    "prebuild": "node --experimental-import-meta-resolve misc/fix-abi-registry.mjs && prebuild --all --force --strip --verbose && node misc/copy-universal-binaries.mjs",
     "prebuild-upload": "prebuild --upload-all"
   },
   "dependencies": {

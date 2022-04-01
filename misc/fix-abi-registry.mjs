@@ -1,8 +1,9 @@
 // https://github.com/prebuild/prebuild/issues/284
 
-const { readFileSync, writeFileSync } = require('fs');
+import { readFileSync, writeFileSync } from 'fs';
+import { fileURLToPath } from 'url';
 
-const pathToAbiRegistry = require.resolve('node-abi/abi_registry.json');
+const pathToAbiRegistry = fileURLToPath(await import.meta.resolve('node-abi/abi_registry.json'));
 
 const abiRegistry = JSON.parse(readFileSync(pathToAbiRegistry, 'utf-8'));
 
