@@ -33,3 +33,6 @@ jobs:
 
       - name: Prebuild binaries
         run: npm run prebuild
+
+      - name: Upload binaries
+        run: npm run prebuild-upload -- -u ${{ secrets.GITHUB_TOKEN }}
