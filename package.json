@@ -1,6 +1,6 @@
 {
   "name": "node-selection",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Get current selected text by using system accessibility APIs",
   "gypfile": true,
   "main": "index.js",

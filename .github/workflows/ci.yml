@@ -64,10 +64,10 @@ jobs:
         with:
           path: prebuilds
 
-      # - name: Publish to npm
-      #   run: npm publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: 'Upload prebuilt artifacts to GitHub release'
         run: npm run prebuild-upload -- ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to npm
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
