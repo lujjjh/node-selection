@@ -13,7 +13,8 @@
   },
   "scripts": {
     "install": "prebuild-install || node-gyp rebuild",
-    "build": "node misc/fix-abi-registry.js && prebuild --all --force --strip --verbose"
+    "prebuild": "node misc/fix-abi-registry.js && prebuild --all --force --strip --verbose",
+    "prebuild-upload": "prebuild --upload-all"
   },
   "dependencies": {
     "nan": "^2.15.0",
