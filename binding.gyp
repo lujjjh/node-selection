@@ -19,6 +19,7 @@
               "src/selection_mac.mm"
             ],
             "xcode_settings": {
+              "MACOSX_DEPLOYMENT_TARGET": "10.9",
               "GCC_ENABLE_CPP_EXCEPTIONS": "YES"
             },
             "link_settings": {

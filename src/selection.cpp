@@ -60,22 +60,43 @@ protected:
   }
 };
 
-void CheckAccessibilityPermissions(const FunctionCallbackInfo<Value> &args) {
-  auto isolate = Isolate::GetCurrent();
-  auto prompt = args[0]->BooleanValue(isolate);
-  auto callback = new Callback(args[1].As<Function>());
+NAN_METHOD(CheckAccessibilityPermissions) {
+  if (info.Length() != 2) {
+    return Nan::ThrowTypeError("expected 2 arguments");
+  }
+
+  if (!info[0]->IsBoolean()) {
+    return Nan::ThrowTypeError("prompt must be a boolean");
+  }
+
+  if (!info[1]->IsFunction()) {
+    return Nan::ThrowTypeError("callback must be a function");
+  }
+
+  auto prompt = Nan::To<bool>(info[0]).FromJust();
+  auto callback = new Callback(info[1].As<Function>());
+
   AsyncQueueWorker(new CheckAccessibilityPermissionsAsyncWorker(callback, prompt));
 }
 
-void GetSelection(const FunctionCallbackInfo<Value> &args) {
-  auto callback = new Callback(args[0].As<Function>());
+NAN_METHOD(GetSelection) {
+  if (info.Length() != 1) {
+    return Nan::ThrowTypeError("expected 1 arguments");
+  }
+
+  if (!info[0]->IsFunction()) {
+    return Nan::ThrowTypeError("callback must be a function");
+  }
+
+  auto callback = new Callback(info[0].As<Function>());
+
   AsyncQueueWorker(new GetSelectionAsyncWorker(callback));
 }
 
 void Initialize(Local<Object> exports) {
   selection_impl::Initialize();
-  NODE_SET_METHOD(exports, "checkAccessibilityPermissions", CheckAccessibilityPermissions);
-  NODE_SET_METHOD(exports, "getSelection", GetSelection);
+  Nan::SetMethod(exports, "checkAccessibilityPermissions", CheckAccessibilityPermissions);
+  Nan::SetMethod(exports, "getSelection", GetSelection);
 }
 
 NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
