@@ -30,7 +30,7 @@ void _OutputElementName(IUIAutomationElement *element) {
   CComBSTR name;
   if (element->get_CurrentName(&name) == S_OK) {
     auto s = BSTRtoUTF8(name);
-    printf(L"name: %s\n", s.data());
+    printf("name: %s\n", s.data());
   }
 }
 
