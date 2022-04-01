@@ -1,13 +1,8 @@
 # node-selection
 
-> Get current selected text by using system accessibility APIs.
+> Get current selected text by using system accessibility APIs
 
-## Prerequisite
-
-- Xcode (for macOS)
-- Visual Studio (for Windows)
-
-## Install
+## Installation
 
 ```sh
 npm i node-selection
@@ -15,21 +10,52 @@ npm i node-selection
 
 ## Usage
 
-### `checkAccessibilityPermissions({ prompt = false }): Promise<boolean>`
+### Accessibility permissions
 
-`getSelection` requires accessibility permissions to be granted.
-This function checks if accessibility permissions are granted.
+macOS requires accessibility permissions to be granted before a program
+can control the Mac by using accessibility features.
 
-If `prompt` is set to `true`, a prompt window that allows user
-open Accessibility panel will be shown.
+#### `checkAccessibilityPermissions([options])`
 
-On Windows, it always returns `true`.
+- `options`: `<Object>`
+  - `prompt`: `<boolean>` **Default:** `false`
 
-### `getSelection(): Promise<{ text?: string }>`
+Returns: `<Promise>` Fullfills upon success with a boolean indicating
+whether accessibility permissions have been granted to this program.
 
-Get current selected text. An error will be thrown if this operation
-is failed or nothing is selected.
+If `prompt` is `true`, a prompt window will be shown when accessibility
+permissions have not been granted.
+
+If this method is invoked on non-macOS platform, it always returns `true`.
+
+```js
+import { checkAccessibilityPermissions } from 'node-selection';
+
+if (!await checkAccessibilityPermissions({ prompt: true })) {
+  console.log('grant accessibility permissions and restart this program');
+  process.exit(1);
+}
+```
+
+### Selection
+
+#### `getSelection()`
+
+Returns: `<Promise>` Fullfills upon success with an object with one property:
+- `text`: `<string>` | `<undefined>` Current selected text.
+
+```js
+import { getSelection } from 'node-selection';
+
+try {
+  const { text } = await getSelection();
+  console.log('current selection:', text);
+} catch (error) {
+  // no valid selection
+  console.error('error', error);
+}
+```
 
 ## Example
 
-See [example/getSelection.js](example/getSelection.js).
+- [getSelection.js](example/getSelection.js)
