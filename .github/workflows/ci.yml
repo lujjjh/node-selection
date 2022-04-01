@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   build:
-    name: 'Build on Node v${{ matrix.node }} ${{ matrix.os.name }} ${{ matrix.arch }}'
+    name: 'Build on ${{ matrix.os.name }} ${{ matrix.arch }}'
     runs-on: ${{ matrix.os.name }}-${{ matrix.os.version }}
 
     strategy:
@@ -34,5 +34,40 @@ jobs:
       - name: Prebuild binaries
         run: npm run prebuild
 
-      - name: Upload binaries
-        run: npm run prebuild-upload -- -u ${{ secrets.GITHUB_TOKEN }}
+      - name: 'Upload prebuilt binaries'
+        uses: actions/upload-artifact@v2
+        with:
+          name: prebuilds-${{ matrix.os.name }}-${{ matrix.arch }}
+          path: prebuilds
+
+  publish:
+    name: 'Publish release'
+    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    needs: [build]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Install Node.js with registry configured for publish
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies without building
+        run: npm ci --ignore-scripts
+
+      - name: Download prebuilt binaries
+        uses: actions/download-artifact@v2
+        with:
+          path: prebuilds
+
+      # - name: Publish to npm
+      #   run: npm publish
+      #   env:
+      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: 'Upload prebuilt artifacts to GitHub release'
+        run: npm run prebuild-upload -- ${{ secrets.GITHUB_TOKEN }}
