@@ -3,6 +3,7 @@
 
 #include <node.h>
 #include <string>
+#include <tuple>
 
 namespace selection {
 class RuntimeException : public std::exception {
