@@ -68,7 +68,6 @@ void CheckAccessibilityPermissions(const FunctionCallbackInfo<Value> &args) {
 }
 
 void GetSelection(const FunctionCallbackInfo<Value> &args) {
-  auto isolate = Isolate::GetCurrent();
   auto callback = new Callback(args[0].As<Function>());
   AsyncQueueWorker(new GetSelectionAsyncWorker(callback));
 }

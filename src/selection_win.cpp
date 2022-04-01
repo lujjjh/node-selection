@@ -12,7 +12,7 @@ using selection::RuntimeException;
 void Initialize() { CoInitializeEx(0, COINIT_MULTITHREADED); }
 
 bool CheckAccessibilityPermissions(bool prompt) {
-  prompt;
+  std::ignore = prompt;
   return true;
 }
 

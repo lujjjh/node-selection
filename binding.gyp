@@ -47,6 +47,14 @@
               "_UNICODE"
             ]
           }
+        ],
+        [
+          "OS==\"linux\"",
+          {
+            "sources": [
+              "src/selection_linux.cpp"
+            ]
+          }
         ]
       ],
       "include_dirs": [
