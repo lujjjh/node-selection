@@ -14,17 +14,20 @@ bool CheckAccessibilityPermissions(bool prompt) {
   return AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
 }
 
-void TouchDescendantElements(AXUIElementRef element) {
+void TouchDescendantElements(AXUIElementRef element, int maxDepth) {
   if (!element) {
     return;
   }
-  CFMutableArrayRef children;
+  if (maxDepth <= 0) {
+    return;
+  }
+  CFArrayRef children;
   auto error = AXUIElementCopyAttributeValue(element, kAXChildrenAttribute, (CFTypeRef *)&children);
   if (error != kAXErrorSuccess) {
     return;
   }
-  for (CFIndex i = 0; i < CFArrayGetCount(children); i++) {
-    TouchDescendantElements((AXUIElementRef)CFArrayGetValueAtIndex(children, i));
+  for (CFIndex i = 0; i < std::min(CFArrayGetCount(children), (CFIndex)8); i++) {
+    TouchDescendantElements((AXUIElementRef)CFArrayGetValueAtIndex(children, i), maxDepth - 1);
   }
   CFRelease(children);
 }
@@ -60,7 +63,7 @@ AXUIElementRef GetFocusedElement() {
   auto focusedElement = _GetFocusedElement();
   // Touch all descendant elements to enable accessibility in apps like Word and Excel.
   if (focusedElement) {
-    TouchDescendantElements(focusedElement);
+    TouchDescendantElements(focusedElement, 8);
     CFRelease(focusedElement);
     focusedElement = _GetFocusedElement();
   }
