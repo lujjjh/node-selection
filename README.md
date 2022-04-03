@@ -31,7 +31,7 @@ If this method is invoked on non-macOS platform, it always returns `true`.
 ```js
 import { checkAccessibilityPermissions } from 'node-selection';
 
-if (!await checkAccessibilityPermissions({ prompt: true })) {
+if (!(await checkAccessibilityPermissions({ prompt: true }))) {
   console.log('grant accessibility permissions and restart this program');
   process.exit(1);
 }
@@ -42,6 +42,7 @@ if (!await checkAccessibilityPermissions({ prompt: true })) {
 #### `getSelection()`
 
 Returns: `<Promise>` Fullfills upon success with an object with one property:
+
 - `text`: `<string>` | `<undefined>` Current selected text.
 
 ```js
@@ -56,6 +57,7 @@ try {
 }
 ```
 
-## Example
+## Examples
 
-- [getSelection.js](example/getSelection.js)
+- [Node](example/node-example)
+- [Electron](example/electron-example)
