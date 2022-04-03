@@ -14,15 +14,6 @@ bool CheckAccessibilityPermissions(bool prompt) {
   return AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
 }
 
-AXUIElementRef CreateSystemWideElement() {
-  AXUIElementRef systemWideElement = AXUIElementCreateSystemWide();
-  AXUIElementRef _;
-  if (AXUIElementCopyElementAtPosition(systemWideElement, 0, 0, &_) == kAXErrorSuccess) {
-    CFRelease(_);
-  }
-  return systemWideElement;
-}
-
 void TouchDescendantElements(AXUIElementRef element) {
   if (!element) {
     return;
@@ -39,10 +30,26 @@ void TouchDescendantElements(AXUIElementRef element) {
 }
 
 AXUIElementRef _GetFocusedElement() {
-  static auto systemWideElement = CreateSystemWideElement();
+  // TODO: activeApplication is deprecated, should use frontmostApplication instead;
+  // however, the latter requires a main event loop to be running, which would block
+  // Node's event loop.
+  auto frontmostApplication = [[NSWorkspace sharedWorkspace] activeApplication];
+  if (!frontmostApplication) {
+    return nil;
+  }
+  pid_t pid = [frontmostApplication[@"NSApplicationProcessIdentifier"] intValue];
+  auto application = AXUIElementCreateApplication(pid);
+  if (!application) {
+    return nil;
+  }
+  AXUIElementSetAttributeValue(application, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
+  AXUIElementSetAttributeValue(application, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
   AXUIElementRef focusedElement;
-  auto error =
-      AXUIElementCopyAttributeValue(systemWideElement, kAXFocusedUIElementAttribute, (CFTypeRef *)&focusedElement);
+  auto error = AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute, (CFTypeRef *)&focusedElement);
+  if (error != kAXErrorSuccess) {
+    error = AXUIElementCopyAttributeValue(application, kAXFocusedWindowAttribute, (CFTypeRef *)&focusedElement);
+  }
+  CFRelease(application);
   if (error != kAXErrorSuccess) {
     return nil;
   }

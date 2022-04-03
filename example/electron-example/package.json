@@ -1,0 +1,14 @@
+{
+  "name": "electron-example",
+  "private": true,
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "electron-rebuild",
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^18.0.1",
+    "electron-rebuild": "^3.2.7",
+    "node-selection": "file:../.."
+  }
+}

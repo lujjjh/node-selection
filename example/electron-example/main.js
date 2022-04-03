@@ -1,4 +1,4 @@
-const { checkAccessibilityPermissions, getSelection } = require('..');
+const { checkAccessibilityPermissions, getSelection } = require('node-selection');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms));
 
