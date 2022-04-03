@@ -7,6 +7,8 @@
 namespace selection_impl {
 using selection::RuntimeException;
 
+static NSSet *appsManuallyEnableAx = [[NSSet alloc] initWithArray:@[ @"com.google.Chrome", @"org.mozilla.firefox" ]];
+
 void Initialize() {}
 
 bool CheckAccessibilityPermissions(bool prompt) {
@@ -45,8 +47,11 @@ AXUIElementRef _GetFocusedElement() {
   if (!application) {
     return nil;
   }
-  AXUIElementSetAttributeValue(application, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
-  AXUIElementSetAttributeValue(application, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
+  NSString *bundlerIdentifer = frontmostApplication[@"NSApplicationBundleIdentifier"];
+  if ([appsManuallyEnableAx containsObject:bundlerIdentifer]) {
+    AXUIElementSetAttributeValue(application, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
+    AXUIElementSetAttributeValue(application, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
+  }
   AXUIElementRef focusedElement;
   auto error = AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute, (CFTypeRef *)&focusedElement);
   if (error != kAXErrorSuccess) {
@@ -73,7 +78,7 @@ AXUIElementRef GetFocusedElement() {
 const std::string GetSelection() {
   auto focusedElement = GetFocusedElement();
   if (!focusedElement) {
-    throw RuntimeException("failed to get focused element");
+    throw RuntimeException("no focused element");
   }
 
   NSString *selection;
@@ -90,7 +95,7 @@ const std::string GetSelection() {
   }
   CFRelease(focusedElement);
   if (error != kAXErrorSuccess) {
-    throw RuntimeException("failed to get selected text");
+    throw RuntimeException("no valid selection");
   }
 
   return std::string([selection UTF8String], [selection lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);

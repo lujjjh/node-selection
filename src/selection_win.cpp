@@ -56,7 +56,7 @@ const std::string GetSelection() {
 
   CComPtr<IUIAutomationElement> focusedElement;
   if (automation->GetFocusedElement(&focusedElement) != S_OK || !focusedElement) {
-    throw RuntimeException("failed to get focused element");
+    throw RuntimeException("no focused element");
   }
   for (; focusedElement;
        treeWalker->GetParentElement(focusedElement, &focusedElement) != S_OK && (focusedElement = nullptr)) {
@@ -104,7 +104,7 @@ const std::string GetSelection() {
     }
   }
 
-  throw RuntimeException("no selection found");
+  throw RuntimeException("no valid selection");
 }
 
 } // namespace selection_impl
