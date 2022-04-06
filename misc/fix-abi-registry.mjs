@@ -1,28 +1,20 @@
 // https://github.com/prebuild/prebuild/issues/284
 
-import { spawnSync } from 'child_process';
-import { readFileSync, writeFileSync } from 'fs';
-import { dirname } from 'path';
+import { promises } from 'fs';
+const { writeFile } = promises;
 import { fileURLToPath } from 'url';
+import fetch from 'node-fetch';
 
-console.error('updating abi registry...');
-{
-  const cwd = dirname(fileURLToPath(await import.meta.resolve('node-abi/package.json')));
-  spawnSync('npm', ['i'], { cwd, shell: true }).output.toString('utf8');
-  spawnSync(process.argv[0], [fileURLToPath(await import.meta.resolve('node-abi/scripts/update-abi-registry.js'))], {
-    cwd,
-    shell: true,
-  });
-}
+console.error('pulling the latest abi registry...');
+const response = await fetch('https://raw.githubusercontent.com/electron/node-abi/main/abi_registry.json');
+const abiRegistryContent = await response.text();
 
-const pathToAbiRegistry = fileURLToPath(await import.meta.resolve('node-abi/abi_registry.json'));
-
-const abiRegistry = JSON.parse(readFileSync(pathToAbiRegistry, 'utf-8'));
-
+console.log('patching...');
+const abiRegistry = JSON.parse(abiRegistryContent);
 abiRegistry.forEach((item) => {
   if (item.target === '17.0.0') {
     item.target = '17.0.1';
   }
 });
-
-writeFileSync(pathToAbiRegistry, JSON.stringify(abiRegistry, null, 2) + '\n');
+const pathToAbiRegistry = fileURLToPath(await import.meta.resolve('node-abi/abi_registry.json'));
+await writeFile(pathToAbiRegistry, JSON.stringify(abiRegistry, null, 2) + '\n');

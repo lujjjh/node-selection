@@ -1,4 +1,7 @@
 {
+  "variables": {
+    "openssl_fips": "0"
+  },
   "targets": [
     {
       "target_name": "selection",
@@ -67,7 +70,7 @@
         ]
       ],
       "include_dirs": [
-        "<!(node -e \"require('nan')\")"
+        "<!(node -p \"require('node-addon-api').include_dir\")"
       ]
     }
   ]

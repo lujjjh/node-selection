@@ -12,15 +12,17 @@
     "url": "https://github.com/lujjjh/node-selection"
   },
   "scripts": {
-    "install": "prebuild-install || node-gyp rebuild",
-    "prebuild": "node --experimental-import-meta-resolve misc/fix-abi-registry.mjs && prebuild --all --force --strip --verbose && node misc/copy-universal-binaries.mjs",
-    "prebuild-upload": "prebuild --upload-all"
+    "install": "node-gyp-build",
+    "rebuild": "npm run install --build-from-source",
+    "prebuild": "node --experimental-import-meta-resolve misc/fix-abi-registry.mjs && prebuildify -t 8.14.0 --napi --strip",
+    "prebuild:fat": "npm run prebuild -- --arch x64+arm64"
   },
   "dependencies": {
-    "nan": "^2.15.0",
-    "prebuild-install": "^7.0.1"
+    "node-addon-api": "^4.3.0",
+    "node-gyp-build": "^4.4.0"
   },
   "devDependencies": {
-    "prebuild": "^11.0.3"
+    "node-fetch": "^3.2.3",
+    "prebuildify": "^5.0.0"
   }
 }

@@ -1,12 +1,8 @@
-const { promisify } = require('util');
-const { checkAccessibilityPermissions, getSelection } = require('./build/Release/selection.node');
+const { checkAccessibilityPermissions, getSelection } = require('node-gyp-build')(__dirname);
 
-const _checkAccessibilityPermissions = promisify(checkAccessibilityPermissions);
-const _getSelection = promisify(getSelection);
-
-exports.checkAccessibilityPermissions = ({ prompt = false } = {}) => _checkAccessibilityPermissions(prompt);
+exports.checkAccessibilityPermissions = ({ prompt = false } = {}) => checkAccessibilityPermissions(prompt);
 
 exports.getSelection = async () => {
-  const text = await _getSelection();
+  const text = await getSelection();
   return { text };
 };
