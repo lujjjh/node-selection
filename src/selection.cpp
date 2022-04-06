@@ -1,103 +1,99 @@
-#include <nan.h>
-#include <node.h>
+#define NAPI_VERSION 3
+#include <napi.h>
+#include <node_api.h>
 
 #include "selection.hpp"
 
 namespace selection {
-using Nan::AsyncQueueWorker;
-using Nan::AsyncWorker;
-using Nan::Callback;
-using v8::Boolean;
-using v8::Function;
-using v8::FunctionCallbackInfo;
-using v8::Isolate;
-using v8::Local;
-using v8::Object;
-using v8::Value;
+using Napi::AsyncWorker;
+using Napi::Boolean;
+using Napi::Error;
+using Napi::Function;
+using Napi::HandleScope;
+using Napi::Promise;
+using Napi::String;
+using Napi::TypeError;
 
 class CheckAccessibilityPermissionsAsyncWorker : public AsyncWorker {
   bool prompt;
   bool result;
+  Promise::Deferred deferred;
 
 public:
-  CheckAccessibilityPermissionsAsyncWorker(Callback *callback, bool prompt) : AsyncWorker(callback), prompt(prompt) {}
+  CheckAccessibilityPermissionsAsyncWorker(const Napi::CallbackInfo &info, bool prompt)
+      : AsyncWorker(info.Env()), prompt(prompt), deferred(Promise::Deferred::New(info.Env())) {}
 
-  virtual void Execute() {
+  Promise GetPromise() { return deferred.Promise(); }
+
+  void Execute() override {
     try {
       result = selection_impl::CheckAccessibilityPermissions(prompt);
     } catch (const RuntimeException &e) {
-      SetErrorMessage(e.what());
+      SetError(e.what());
     }
   }
 
-protected:
-  virtual void HandleOKCallback() {
-    Nan::HandleScope scope;
-    v8::Local<v8::Value> argv[] = {Nan::Null(), Nan::New(result)};
-    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 2, argv);
-  }
+  void OnOK() override { deferred.Resolve(Boolean::New(Env(), result)); }
+
+  void OnError(const Error &e) override { deferred.Reject(e.Value()); }
 };
 
 class GetSelectionAsyncWorker : public AsyncWorker {
   std::string result;
+  Promise::Deferred deferred;
 
 public:
-  GetSelectionAsyncWorker(Callback *callback) : AsyncWorker(callback) {}
+  GetSelectionAsyncWorker(const Napi::CallbackInfo &info)
+      : AsyncWorker(info.Env()), deferred(Promise::Deferred::New(info.Env())) {}
 
-  virtual void Execute() {
+  Promise GetPromise() { return deferred.Promise(); }
+
+  void Execute() override {
     try {
       result = selection_impl::GetSelection();
     } catch (const RuntimeException &e) {
-      SetErrorMessage(e.what());
+      SetError(e.what());
     }
   }
 
-protected:
-  virtual void HandleOKCallback() {
-    Nan::HandleScope scope;
-    v8::Local<v8::Value> argv[] = {Nan::Null(), Nan::New(result).ToLocalChecked()};
-    Nan::Call(callback->GetFunction(), Nan::GetCurrentContext()->Global(), 2, argv);
-  }
+  void OnOK() override { deferred.Resolve(String::New(Env(), result)); }
+
+  void OnError(const Error &e) override { deferred.Reject(e.Value()); }
 };
 
-NAN_METHOD(CheckAccessibilityPermissions) {
-  if (info.Length() != 2) {
-    return Nan::ThrowTypeError("expected 2 arguments");
-  }
+Napi::Value CheckAccessibilityPermissions(const Napi::CallbackInfo &info) {
+  auto env = info.Env();
 
-  if (!info[0]->IsBoolean()) {
-    return Nan::ThrowTypeError("prompt must be a boolean");
-  }
-
-  if (!info[1]->IsFunction()) {
-    return Nan::ThrowTypeError("callback must be a function");
-  }
-
-  auto prompt = Nan::To<bool>(info[0]).FromJust();
-  auto callback = new Callback(info[1].As<Function>());
-
-  AsyncQueueWorker(new CheckAccessibilityPermissionsAsyncWorker(callback, prompt));
-}
-
-NAN_METHOD(GetSelection) {
   if (info.Length() != 1) {
-    return Nan::ThrowTypeError("expected 1 arguments");
+    TypeError::New(env, "expected 1 arguments").ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
-  if (!info[0]->IsFunction()) {
-    return Nan::ThrowTypeError("callback must be a function");
+  if (!info[0].IsBoolean()) {
+    TypeError::New(env, "prompt must be a boolean").ThrowAsJavaScriptException();
+    return env.Undefined();
   }
 
-  auto callback = new Callback(info[0].As<Function>());
+  auto prompt = info[0].As<Boolean>().Value();
 
-  AsyncQueueWorker(new GetSelectionAsyncWorker(callback));
+  auto worker = new CheckAccessibilityPermissionsAsyncWorker(info, prompt);
+  worker->Queue();
+  return worker->GetPromise();
 }
 
-void Initialize(Local<Object> exports) {
-  selection_impl::Initialize();
-  Nan::SetMethod(exports, "checkAccessibilityPermissions", CheckAccessibilityPermissions);
-  Nan::SetMethod(exports, "getSelection", GetSelection);
+Napi::Value GetSelection(const Napi::CallbackInfo &info) {
+  auto worker = new GetSelectionAsyncWorker(info);
+  worker->Queue();
+  return worker->GetPromise();
 }
 
-NODE_MODULE(NODE_GYP_MODULE_NAME, Initialize)
+Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  exports.Set(String::New(env, "checkAccessibilityPermissions"),
+              Napi::Function::New(env, CheckAccessibilityPermissions));
+  exports.Set(String::New(env, "getSelection"), Napi::Function::New(env, GetSelection));
+  return exports;
+}
+
+NODE_API_MODULE(selection, Init)
+
 } // namespace selection

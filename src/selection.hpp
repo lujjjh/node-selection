@@ -1,7 +1,6 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
-#include <node.h>
 #include <string>
 #include <tuple>
 
@@ -21,5 +20,14 @@ void Initialize();
 bool CheckAccessibilityPermissions(bool prompt);
 const std::string GetSelection();
 } // namespace selection_impl
+
+#define NAPI_BOOL(name, val)                                                                                           \
+  bool name;                                                                                                           \
+  if (napi_get_value_bool(env, val, &name) != napi_ok) {                                                               \
+    napi_throw_error(env, "EINVAL", "Expected boolean");                                                               \
+    return NULL;                                                                                                       \
+  }
+
+#define NAPI_ARGV_BOOL(name, i) NAPI_BOOL(name, argv[i])
 
 #endif
