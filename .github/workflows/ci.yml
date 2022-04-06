@@ -40,7 +40,7 @@ jobs:
         run: npm run prebuild
 
       - name: 'Upload prebuilt binaries'
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: prebuilds-${{ matrix.os.name }}-${{ matrix.arch }}
           path: prebuilds
@@ -65,9 +65,19 @@ jobs:
         run: npm ci --ignore-scripts
 
       - name: Download prebuilt binaries
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
-          path: prebuilds
+          path: .prebuilds
+
+      - name: Merge prebuilds
+        run: |
+          mkdir prebuilds
+          mv .prebuilds/*/* prebuilds/
+          rmdir .prebuilds/*
+          rmdir .prebuilds
+
+      - name: List prebuilds
+        run: ls -laR prebuilds
 
       - name: Publish to npm
         run: npm publish
