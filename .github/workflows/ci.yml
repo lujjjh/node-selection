@@ -31,7 +31,12 @@ jobs:
       - name: Install dependencies and build from source
         run: npm ci --build-from-source
 
+      - name: Prebuild fat binaries
+        if: ${{ matrix.os.name == 'macOS' }}
+        run: npm run prebuild:fat
+
       - name: Prebuild binaries
+        if: ${{ matrix.os.name != 'macOS' }}
         run: npm run prebuild
 
       - name: 'Upload prebuilt binaries'
@@ -63,9 +68,6 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           path: prebuilds
-
-      - name: 'Upload prebuilt artifacts to GitHub release'
-        run: npm run prebuild-upload -- ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to npm
         run: npm publish
