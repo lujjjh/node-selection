@@ -13,7 +13,7 @@ jobs:
           - name: Ubuntu
             version: latest
           - name: macOS
-            version: macos-12
+            version: 12
           - name: Windows
             version: 2019
         arch: [x64]
