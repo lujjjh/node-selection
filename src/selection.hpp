@@ -1,6 +1,7 @@
 #ifndef SELECTION_H
 #define SELECTION_H
 
+#include <optional>
 #include <string>
 #include <tuple>
 
@@ -16,9 +17,20 @@ public:
 } // namespace selection
 
 namespace selection_impl {
+struct ProcessInfo {
+  pid_t pid;
+  std::optional<std::string> name;
+  std::optional<std::string> bundleIdentifier; // macOS only
+};
+
+struct Selection {
+  std::string text;
+  std::optional<ProcessInfo> process;
+};
+
 void Initialize();
 bool CheckAccessibilityPermissions(bool prompt);
-const std::string GetSelection();
+Selection GetSelection();
 } // namespace selection_impl
 
 #define NAPI_BOOL(name, val)                                                                                           \

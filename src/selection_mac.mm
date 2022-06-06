@@ -16,6 +16,48 @@ bool CheckAccessibilityPermissions(bool prompt) {
   return AXIsProcessTrustedWithOptions((CFDictionaryRef)options);
 }
 
+std::string ToString(NSString *string) {
+  return std::string([string UTF8String], [string lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
+}
+
+pid_t GetFrontProcessID() {
+  // TODO: activeApplication is deprecated, should use frontmostApplication instead;
+  // however, the latter requires a main event loop to be running, which would block
+  // Node's event loop.
+  auto frontmostApplication = [[NSWorkspace sharedWorkspace] activeApplication];
+  if (!frontmostApplication) {
+    return 0;
+  }
+  pid_t pid = [frontmostApplication[@"NSApplicationProcessIdentifier"] intValue];
+  CFRelease(frontmostApplication);
+  return pid;
+}
+
+std::optional<std::string> GetProcessName(pid_t pid) {
+  auto application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+  if (!application) {
+    return nil;
+  }
+  auto url = [application executableURL];
+  if (!url) {
+    CFRelease(application);
+    return nil;
+  }
+  auto name = [url lastPathComponent];
+  CFRelease(application);
+  return ToString(name);
+}
+
+std::optional<std::string> GetBundleIdentifier(pid_t pid) {
+  auto application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
+  if (!application) {
+    return nil;
+  }
+  auto bundle_identifier = [application bundleIdentifier];
+  CFRelease(application);
+  return ToString(bundle_identifier);
+}
+
 void TouchDescendantElements(AXUIElementRef element, int maxDepth) {
   if (!element) {
     return;
@@ -34,24 +76,19 @@ void TouchDescendantElements(AXUIElementRef element, int maxDepth) {
   CFRelease(children);
 }
 
-AXUIElementRef _GetFocusedElement() {
-  // TODO: activeApplication is deprecated, should use frontmostApplication instead;
-  // however, the latter requires a main event loop to be running, which would block
-  // Node's event loop.
-  auto frontmostApplication = [[NSWorkspace sharedWorkspace] activeApplication];
-  if (!frontmostApplication) {
-    return nil;
-  }
-  pid_t pid = [frontmostApplication[@"NSApplicationProcessIdentifier"] intValue];
+AXUIElementRef _GetFocusedElement(pid_t pid) {
   auto application = AXUIElementCreateApplication(pid);
   if (!application) {
     return nil;
   }
-  NSString *bundlerIdentifer = frontmostApplication[@"NSApplicationBundleIdentifier"];
+
+  NSString *bundlerIdentifer = [NSString stringWithUTF8String:GetBundleIdentifier(pid)->c_str()];
   if ([appsManuallyEnableAx containsObject:bundlerIdentifer]) {
     AXUIElementSetAttributeValue(application, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
     AXUIElementSetAttributeValue(application, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
   }
+  CFRelease(bundlerIdentifer);
+
   AXUIElementRef focusedElement;
   auto error = AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute, (CFTypeRef *)&focusedElement);
   if (error != kAXErrorSuccess) {
@@ -61,35 +98,36 @@ AXUIElementRef _GetFocusedElement() {
   if (error != kAXErrorSuccess) {
     return nil;
   }
+
   return focusedElement;
 }
 
-AXUIElementRef GetFocusedElement() {
-  auto focusedElement = _GetFocusedElement();
+AXUIElementRef GetFocusedElement(pid_t pid) {
+  auto focusedElement = _GetFocusedElement(pid);
   // Touch all descendant elements to enable accessibility in apps like Word and Excel.
   if (focusedElement) {
     TouchDescendantElements(focusedElement, 8);
     CFRelease(focusedElement);
-    focusedElement = _GetFocusedElement();
+    focusedElement = _GetFocusedElement(pid);
   }
   return focusedElement;
 }
 
-const std::string GetSelection() {
-  auto focusedElement = GetFocusedElement();
+std::string GetSelectionText(pid_t pid) {
+  auto focusedElement = GetFocusedElement(pid);
   if (!focusedElement) {
     throw RuntimeException("no focused element");
   }
 
-  NSString *selection;
-  auto error = AXUIElementCopyAttributeValue(focusedElement, kAXSelectedTextAttribute, (CFTypeRef *)&selection);
+  NSString *text;
+  auto error = AXUIElementCopyAttributeValue(focusedElement, kAXSelectedTextAttribute, (CFTypeRef *)&text);
   if (error != kAXErrorSuccess) {
     // Handle WebKit-like elements.
     CFTypeRef range;
     error = AXUIElementCopyAttributeValue(focusedElement, CFSTR("AXSelectedTextMarkerRange"), &range);
     if (error == kAXErrorSuccess) {
       error = AXUIElementCopyParameterizedAttributeValue(focusedElement, CFSTR("AXStringForTextMarkerRange"), range,
-                                                         (CFTypeRef *)&selection);
+                                                         (CFTypeRef *)&text);
       CFRelease(range);
     }
   }
@@ -98,7 +136,20 @@ const std::string GetSelection() {
     throw RuntimeException("no valid selection");
   }
 
-  return std::string([selection UTF8String], [selection lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
+  auto result = ToString(text);
+  CFRelease(text);
+  return result;
+}
+
+Selection GetSelection() {
+  auto pid = GetFrontProcessID();
+  if (!pid) {
+    throw RuntimeException("no front process");
+  }
+
+  return Selection{
+      .text = GetSelectionText(pid),
+      .process = ProcessInfo{.pid = pid, .name = GetProcessName(pid), .bundleIdentifier = GetBundleIdentifier(pid)}};
 }
 
 } // namespace selection

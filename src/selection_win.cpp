@@ -43,7 +43,7 @@ CComPtr<IUIAutomation> CreateUIAutomation() {
   return automation;
 }
 
-const std::string GetSelection() {
+Selection GetSelection() {
   static CComPtr<IUIAutomation> automation = CreateUIAutomation();
   if (!automation) {
     throw RuntimeException("failed to create UIAutomation");
@@ -70,17 +70,25 @@ const std::string GetSelection() {
           !textChildPattern) {
         continue;
       }
+    }
 
-      CComPtr<IUIAutomationElement> containerElement;
-      if (textChildPattern->get_TextContainer(&containerElement) != S_OK || !containerElement) {
-        throw RuntimeException("failed to get container element");
+    std::optional<ProcessInfo> process;
+    {
+      pid_t pid;
+      if (focusedElement->get_CurrentProcessId(&pid) == S_OK) {
+        process = ProcessInfo{pid};
       }
+    }
 
-      if (containerElement->GetCurrentPatternAs(UIA_TextPatternId, IID_IUIAutomationTextPattern,
-                                                reinterpret_cast<void **>(&textPattern)) != S_OK ||
-          !textPattern) {
-        throw RuntimeException("failed to get text pattern");
-      }
+    CComPtr<IUIAutomationElement> containerElement;
+    if (textChildPattern->get_TextContainer(&containerElement) != S_OK || !containerElement) {
+      throw RuntimeException("failed to get container element");
+    }
+
+    if (containerElement->GetCurrentPatternAs(UIA_TextPatternId, IID_IUIAutomationTextPattern,
+                                              reinterpret_cast<void **>(&textPattern)) != S_OK ||
+        !textPattern) {
+      throw RuntimeException("failed to get text pattern");
     }
 
     CComPtr<IUIAutomationTextRangeArray> textRanges;
@@ -100,7 +108,7 @@ const std::string GetSelection() {
       if (textRange->GetText(256, &text) != S_OK) {
         throw RuntimeException("failed to get text");
       }
-      return BSTRtoUTF8(text);
+      return {.text = BSTRtoUTF8(text), .process = process};
     }
   }
 
