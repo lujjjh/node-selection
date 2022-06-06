@@ -5,5 +5,13 @@ export function checkAccessibilityPermissions(options?: CheckAccessibilityPermis
 
 export interface Selection {
   text?: string;
+  process?: ProcessInfo;
 }
+
+export interface ProcessInfo {
+  pid?: number;
+  name?: string;
+  bundleIdentifier?: string;
+}
+
 export function getSelection(): Promise<Selection>;

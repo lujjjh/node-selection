@@ -44,13 +44,17 @@ if (!(await checkAccessibilityPermissions({ prompt: true }))) {
 Returns: `<Promise>` Fullfills upon success with an object with one property:
 
 - `text`: `<string>` | `<undefined>` Current selected text.
+- `process`: `Object` | `<undefined>`
+  - `pid`: `<number>` | `<undefined>` The process ID.
+  - `name`: `<string>` | `<undefined>` The filename of the process.
+  - `bundleIdentifier`: `<string>` | `<undefined>` The bundle identifier of the process (macOS only).
 
 ```js
 import { getSelection } from 'node-selection';
 
 try {
-  const { text } = await getSelection();
-  console.log('current selection:', text);
+  const { text, process } = await getSelection();
+  console.log('current selection:', { text, process });
 } catch (error) {
   // no valid selection
   console.error('error', error);

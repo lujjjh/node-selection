@@ -2,7 +2,4 @@ const { checkAccessibilityPermissions, getSelection } = require('node-gyp-build'
 
 exports.checkAccessibilityPermissions = ({ prompt = false } = {}) => checkAccessibilityPermissions(prompt);
 
-exports.getSelection = async () => {
-  const text = await getSelection();
-  return { text };
-};
+exports.getSelection = getSelection;

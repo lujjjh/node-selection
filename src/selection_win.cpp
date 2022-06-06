@@ -2,7 +2,11 @@
 #include <UIAutomation.h>
 #include <atlbase.h>
 #include <comutil.h>
+#include <psapi.h>
+#include <vector>
+#include <windows.h>
 #pragma comment(lib, "comsuppw.lib")
+#pragma comment(lib, "psapi.lib")
 
 #include "./selection.hpp"
 
@@ -26,6 +30,20 @@ std::string BSTRtoUTF8(BSTR bstr) {
   return ret;
 }
 
+std::string PTCHARtoUTF8(TCHAR *ptchar) {
+#ifndef UNICODE
+  return std::string(ptchar);
+#else
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, ptchar, -1, NULL, 0, NULL, NULL);
+  if (size_needed <= 0) {
+    return "";
+  }
+  std::vector<char> buffer(size_needed);
+  WideCharToMultiByte(CP_UTF8, 0, ptchar, -1, buffer.data(), buffer.size(), NULL, NULL);
+  return std::string(buffer.data());
+#endif
+}
+
 void _OutputElementName(IUIAutomationElement *element) {
   CComBSTR name;
   if (element->get_CurrentName(&name) == S_OK) {
@@ -43,7 +61,7 @@ CComPtr<IUIAutomation> CreateUIAutomation() {
   return automation;
 }
 
-const std::string GetSelection() {
+Selection GetSelection() {
   static CComPtr<IUIAutomation> automation = CreateUIAutomation();
   if (!automation) {
     throw RuntimeException("failed to create UIAutomation");
@@ -83,6 +101,24 @@ const std::string GetSelection() {
       }
     }
 
+    std::optional<ProcessInfo> process;
+    {
+      pid_t pid;
+      if (focusedElement->get_CurrentProcessId(&pid) == S_OK) {
+        process = ProcessInfo{pid};
+        auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+        if (hProcess) {
+          TCHAR buffer[MAX_PATH];
+          if (GetModuleFileNameEx(hProcess, NULL, buffer, MAX_PATH)) {
+            PathStripPath(buffer);
+            auto name = PTCHARtoUTF8(buffer);
+            process->name = name;
+          }
+          CloseHandle(hProcess);
+        }
+      }
+    }
+
     CComPtr<IUIAutomationTextRangeArray> textRanges;
     if (textPattern->GetSelection(&textRanges) != S_OK || !textRanges) {
       throw RuntimeException("failed to get text ranges");
@@ -100,7 +136,7 @@ const std::string GetSelection() {
       if (textRange->GetText(256, &text) != S_OK) {
         throw RuntimeException("failed to get text");
       }
-      return BSTRtoUTF8(text);
+      return {BSTRtoUTF8(text), process};
     }
   }
 

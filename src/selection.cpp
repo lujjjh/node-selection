@@ -39,7 +39,7 @@ public:
 };
 
 class GetSelectionAsyncWorker : public AsyncWorker {
-  std::string result;
+  selection_impl::Selection result;
   Promise::Deferred deferred;
 
 public:
@@ -56,7 +56,24 @@ public:
     }
   }
 
-  void OnOK() override { deferred.Resolve(String::New(Env(), result)); }
+  void OnOK() override {
+    Napi::Object selection = Napi::Object::New(Env());
+    selection.Set("text", String::New(Env(), result.text));
+    if (result.process) {
+      auto process = Napi::Object::New(Env());
+      process.Set("pid", Napi::Number::New(Env(), result.process->pid));
+      if (result.process->name.has_value()) {
+        process.Set("name", String::New(Env(), *result.process->name));
+      }
+      if (result.process->bundleIdentifier.has_value()) {
+        process.Set("bundleIdentifier", String::New(Env(), *result.process->bundleIdentifier));
+      }
+      selection.Set("process", process);
+    } else {
+      selection.Set("process", Env().Null());
+    }
+    deferred.Resolve(selection);
+  }
 
   void OnError(const Error &e) override { deferred.Reject(e.Value()); }
 };
@@ -88,6 +105,7 @@ Napi::Value GetSelection(const Napi::CallbackInfo &info) {
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  selection_impl::Initialize();
   exports.Set(String::New(env, "checkAccessibilityPermissions"),
               Napi::Function::New(env, CheckAccessibilityPermissions));
   exports.Set(String::New(env, "getSelection"), Napi::Function::New(env, GetSelection));

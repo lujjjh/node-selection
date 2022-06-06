@@ -1,4 +1,4 @@
-const { checkAccessibilityPermissions, getSelection } = require('node-selection');
+const { checkAccessibilityPermissions, getSelection } = require('../..');
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms));
 
@@ -10,8 +10,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(() => resolve(), ms));
 
   for (;;) {
     try {
-      const { text } = await getSelection();
-      console.log('current selection:', text);
+      const selection = await getSelection();
+      console.log('current selection:', selection);
     } catch (error) {
       console.error('error', error);
     }

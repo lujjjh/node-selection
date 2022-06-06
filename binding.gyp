@@ -14,6 +14,9 @@
       "cflags_cc!": [
         "-fno-exceptions"
       ],
+      "cflags_cc": [
+        "-std=c++17"
+      ],
       "conditions": [
         [
           "OS==\"mac\"",
@@ -26,7 +29,8 @@
               "GCC_ENABLE_CPP_EXCEPTIONS": "YES",
               "OTHER_CFLAGS": [
                 "-arch x86_64",
-                "-arch arm64"
+                "-arch arm64",
+                "-std=c++17"
               ],
               "OTHER_LDFLAGS": [
                 "-arch x86_64",
@@ -50,7 +54,10 @@
             ],
             "msvs_settings": {
               "VCCLCompilerTool": {
-                "ExceptionHandling": 1
+                "ExceptionHandling": 1,
+                "AdditionalOptions": [
+                  "-std:c++17"
+                ]
               }
             },
             "defines": [
