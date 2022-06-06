@@ -105,6 +105,7 @@ Napi::Value GetSelection(const Napi::CallbackInfo &info) {
 }
 
 Napi::Object Init(Napi::Env env, Napi::Object exports) {
+  selection_impl::Initialize();
   exports.Set(String::New(env, "checkAccessibilityPermissions"),
               Napi::Function::New(env, CheckAccessibilityPermissions));
   exports.Set(String::New(env, "getSelection"), Napi::Function::New(env, GetSelection));

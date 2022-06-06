@@ -5,6 +5,10 @@
 #include <string>
 #include <tuple>
 
+#ifdef _WIN32
+#define pid_t int
+#endif
+
 namespace selection {
 class RuntimeException : public std::exception {
   const std::string msg;

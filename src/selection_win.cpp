@@ -2,7 +2,11 @@
 #include <UIAutomation.h>
 #include <atlbase.h>
 #include <comutil.h>
+#include <psapi.h>
+#include <vector>
+#include <windows.h>
 #pragma comment(lib, "comsuppw.lib")
+#pragma comment(lib, "psapi.lib")
 
 #include "./selection.hpp"
 
@@ -24,6 +28,20 @@ std::string BSTRtoUTF8(BSTR bstr) {
   std::string ret(size_needed, '\0');
   WideCharToMultiByte(CP_UTF8, 0, bstr, len, &ret.front(), ret.size(), NULL, NULL);
   return ret;
+}
+
+std::string PTCHARtoUTF8(TCHAR *ptchar) {
+#ifndef UNICODE
+  return std::string(ptchar);
+#else
+  int size_needed = WideCharToMultiByte(CP_UTF8, 0, ptchar, -1, NULL, 0, NULL, NULL);
+  if (size_needed <= 0) {
+    return "";
+  }
+  std::vector<char> buffer(size_needed);
+  WideCharToMultiByte(CP_UTF8, 0, ptchar, -1, buffer.data(), buffer.size(), NULL, NULL);
+  return std::string(buffer.data());
+#endif
 }
 
 void _OutputElementName(IUIAutomationElement *element) {
@@ -70,6 +88,17 @@ Selection GetSelection() {
           !textChildPattern) {
         continue;
       }
+
+      CComPtr<IUIAutomationElement> containerElement;
+      if (textChildPattern->get_TextContainer(&containerElement) != S_OK || !containerElement) {
+        throw RuntimeException("failed to get container element");
+      }
+
+      if (containerElement->GetCurrentPatternAs(UIA_TextPatternId, IID_IUIAutomationTextPattern,
+                                                reinterpret_cast<void **>(&textPattern)) != S_OK ||
+          !textPattern) {
+        throw RuntimeException("failed to get text pattern");
+      }
     }
 
     std::optional<ProcessInfo> process;
@@ -77,18 +106,17 @@ Selection GetSelection() {
       pid_t pid;
       if (focusedElement->get_CurrentProcessId(&pid) == S_OK) {
         process = ProcessInfo{pid};
+        auto hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, pid);
+        if (hProcess) {
+          TCHAR buffer[MAX_PATH];
+          if (GetModuleFileNameEx(hProcess, NULL, buffer, MAX_PATH)) {
+            PathStripPath(buffer);
+            auto name = PTCHARtoUTF8(buffer);
+            process->name = name;
+          }
+          CloseHandle(hProcess);
+        }
       }
-    }
-
-    CComPtr<IUIAutomationElement> containerElement;
-    if (textChildPattern->get_TextContainer(&containerElement) != S_OK || !containerElement) {
-      throw RuntimeException("failed to get container element");
-    }
-
-    if (containerElement->GetCurrentPatternAs(UIA_TextPatternId, IID_IUIAutomationTextPattern,
-                                              reinterpret_cast<void **>(&textPattern)) != S_OK ||
-        !textPattern) {
-      throw RuntimeException("failed to get text pattern");
     }
 
     CComPtr<IUIAutomationTextRangeArray> textRanges;
@@ -108,7 +136,7 @@ Selection GetSelection() {
       if (textRange->GetText(256, &text) != S_OK) {
         throw RuntimeException("failed to get text");
       }
-      return {.text = BSTRtoUTF8(text), .process = process};
+      return {BSTRtoUTF8(text), process};
     }
   }
 
