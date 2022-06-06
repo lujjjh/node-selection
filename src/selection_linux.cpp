@@ -10,6 +10,6 @@ bool CheckAccessibilityPermissions(bool prompt) {
   return true;
 }
 
-const Selection GetSelection() { throw RuntimeException("unimplemented"); }
+Selection GetSelection() { throw RuntimeException("unimplemented"); }
 
 } // namespace selection_impl

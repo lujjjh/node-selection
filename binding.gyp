@@ -14,6 +14,9 @@
       "cflags_cc!": [
         "-fno-exceptions"
       ],
+      "cflags_cc": [
+        "-std=c++17"
+      ],
       "conditions": [
         [
           "OS==\"mac\"",
