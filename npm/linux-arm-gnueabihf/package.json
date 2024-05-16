@@ -1,0 +1,18 @@
+{
+  "name": "node-selection-linux-arm-gnueabihf",
+  "version": "0.0.0",
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm"
+  ],
+  "main": "node-selection.linux-arm-gnueabihf.node",
+  "files": [
+    "node-selection.linux-arm-gnueabihf.node"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 10"
+  }
+}
