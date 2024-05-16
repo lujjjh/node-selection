@@ -14,5 +14,6 @@ export interface CheckAccessibilityPermissionOptions {
 }
 export class NodeSelection {
   constructor(options?: NodeSelectionOptions | undefined | null)
-  checkAccessibilityPermissions(options?: CheckAccessibilityPermissionOptions | undefined | null): boolean
+  checkAccessibilityPermissions(options?: CheckAccessibilityPermissionOptions | undefined | null): Promise<unknown>
+  getSelection(): Promise<unknown>
 }

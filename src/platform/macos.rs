@@ -1,4 +1,4 @@
-use std::ffi::c_void;
+use std::{ffi::c_void, str::FromStr};
 
 use accessibility_sys::{kAXTrustedCheckOptionPrompt, AXIsProcessTrustedWithOptions};
 use core_foundation::{
@@ -8,9 +8,9 @@ use core_foundation::{
   string::CFString,
 };
 
-use crate::shared::node_selection::{NodeSelection, NodeSelectionTrait};
+use crate::shared::node_selection::{NodeSelectionImpl, NodeSelectionTrait};
 
-impl NodeSelectionTrait for NodeSelection {
+impl NodeSelectionTrait for NodeSelectionImpl {
   fn check_accessibility_permissions(&self, prompt: bool) -> bool {
     unsafe {
       let mut options_dict: CFMutableDictionary<CFString, CFNumber> = CFMutableDictionary::new();
@@ -22,5 +22,9 @@ impl NodeSelectionTrait for NodeSelection {
 
       AXIsProcessTrustedWithOptions(options_dict.into_untyped().to_void() as *const _)
     }
+  }
+
+  fn get_selection(&self) -> Option<String> {
+    Some(String::from_str("Hello, World!").unwrap())
   }
 }
