@@ -9,7 +9,10 @@ export interface NodeSelectionOptions {
 export interface NodeSelectionOptionsMacOs {
   shouldManuallyEnableAccessibility: (bundleIdentifier: string) => boolean
 }
+export interface CheckAccessibilityPermissionOptions {
+  prompt: boolean
+}
 export class NodeSelection {
-  checkAccessibilityPermissions(): boolean
   constructor(options?: NodeSelectionOptions | undefined | null)
+  checkAccessibilityPermissions(options?: CheckAccessibilityPermissionOptions | undefined | null): boolean
 }

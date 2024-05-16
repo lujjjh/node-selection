@@ -27,4 +27,27 @@ impl NodeSelection {
   pub fn get_options(&self) -> &Option<NodeSelectionOptions> {
     &self.options
   }
+
+  #[napi]
+  pub fn check_accessibility_permissions(
+    &self,
+    options: Option<CheckAccessibilityPermissionOptions>,
+  ) -> bool {
+    NodeSelectionTrait::check_accessibility_permissions(
+      self,
+      match options {
+        Some(options) => options.prompt,
+        None => false,
+      },
+    )
+  }
+}
+
+#[napi(object)]
+pub struct CheckAccessibilityPermissionOptions {
+  pub prompt: bool,
+}
+
+pub trait NodeSelectionTrait {
+  fn check_accessibility_permissions(&self, prompt: bool) -> bool;
 }
