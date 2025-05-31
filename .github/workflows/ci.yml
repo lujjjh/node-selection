@@ -13,19 +13,19 @@ jobs:
           - name: Ubuntu
             version: latest
           - name: macOS
-            version: 12
+            version: latest
           - name: Windows
-            version: 2019
+            version: latest
         arch: [x64]
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '22'
           architecture: ${{ matrix.arch }}
 
       - name: Install dependencies and build from source
@@ -40,7 +40,7 @@ jobs:
         run: npm run prebuild
 
       - name: 'Upload prebuilt binaries'
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: prebuilds-${{ matrix.os.name }}-${{ matrix.arch }}
           path: prebuilds
@@ -53,12 +53,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Install Node.js with registry configured for publish
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '22'
           registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies without building

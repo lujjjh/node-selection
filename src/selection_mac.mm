@@ -28,33 +28,28 @@ pid_t GetFrontProcessID() {
   if (!frontmostApplication) {
     return 0;
   }
-  pid_t pid = [frontmostApplication[@"NSApplicationProcessIdentifier"] intValue];
-  CFRelease(frontmostApplication);
-  return pid;
+  return [frontmostApplication[@"NSApplicationProcessIdentifier"] intValue];
 }
 
 std::optional<std::string> GetProcessName(pid_t pid) {
   auto application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
   if (!application) {
-    return nil;
+    return std::nullopt;
   }
   auto url = [application executableURL];
   if (!url) {
-    CFRelease(application);
-    return nil;
+    return std::nullopt;
   }
   auto name = [url lastPathComponent];
-  CFRelease(application);
   return ToString(name);
 }
 
 std::optional<std::string> GetBundleIdentifier(pid_t pid) {
   auto application = [NSRunningApplication runningApplicationWithProcessIdentifier:pid];
   if (!application) {
-    return nil;
+    return std::nullopt;
   }
   auto bundle_identifier = [application bundleIdentifier];
-  CFRelease(application);
   return ToString(bundle_identifier);
 }
 
@@ -82,19 +77,21 @@ AXUIElementRef _GetFocusedElement(pid_t pid) {
     return nil;
   }
 
-  NSString *bundlerIdentifer = [NSString stringWithUTF8String:GetBundleIdentifier(pid)->c_str()];
+  auto bundleIdentifierOptional = GetBundleIdentifier(pid);
+  if (!bundleIdentifierOptional) {
+    return nil;
+  }
+  NSString *bundlerIdentifer = [NSString stringWithUTF8String:bundleIdentifierOptional->c_str()];
   if ([appsManuallyEnableAx containsObject:bundlerIdentifer]) {
     AXUIElementSetAttributeValue(application, CFSTR("AXManualAccessibility"), kCFBooleanTrue);
     AXUIElementSetAttributeValue(application, CFSTR("AXEnhancedUserInterface"), kCFBooleanTrue);
   }
-  CFRelease(bundlerIdentifer);
 
   AXUIElementRef focusedElement;
   auto error = AXUIElementCopyAttributeValue(application, kAXFocusedUIElementAttribute, (CFTypeRef *)&focusedElement);
   if (error != kAXErrorSuccess) {
     error = AXUIElementCopyAttributeValue(application, kAXFocusedWindowAttribute, (CFTypeRef *)&focusedElement);
   }
-  CFRelease(application);
   if (error != kAXErrorSuccess) {
     return nil;
   }
